@@ -87,8 +87,9 @@ class NormalizationNoise(Layer):
             return z_cap_Real
 
 class ModelCheckponitsHandler(tf.keras.callbacks.Callback):
-    def __init__(self, comp_ratio, snr_db, autoencoder, step):
+    def __init__(self, model_str, comp_ratio, snr_db, autoencoder, step):
         super(ModelCheckponitsHandler, self).__init__()
+        self.model_str = model_str
         self.comp_ratio = comp_ratio
         self.snr_db = snr_db
         self.step = step
@@ -96,9 +97,10 @@ class ModelCheckponitsHandler(tf.keras.callbacks.Callback):
 
     def on_epoch_begin(self, epoch, logs=None):
         if epoch % self.step == 0:
-            os.makedirs('./CKPT_ByEpochs/CompRatio_' + str(self.comp_ratio) + 'SNR' + str(self.snr_db), exist_ok=True)
-            path = './CKPT_ByEpochs/CompRatio_' + str(self.comp_ratio) + 'SNR' + str(
-                self.snr_db) + '/Autoencoder_Epoch_' + str(epoch) + '.h5'
+            os.makedirs('./CKPT_ByEpochs/' + str(self.model_str) + '_CompRatio' + str(self.comp_ratio) +
+                        '_SNR' + str(self.snr_db), exist_ok=True)
+            path = './CKPT_ByEpochs/' + str(self.model_str) + '_CompRatio' + str(self.comp_ratio) + \
+                   '_SNR' + str(self.snr_db) + '/Epoch_' + str(epoch) + '.h5'
             self.autoencoder.save(path)
             print('\nModel Saved After {0} epochs.'.format(epoch))
 
@@ -107,7 +109,7 @@ def Calculate_filters(comp_ratio, F=5, n=3072):
     K = (comp_ratio * n) / F ** 2
     return int(K)
 
-def model1(x_train, x_test, nb_epoch, comp_ratio, batch_size, c, snr, saver_step=50):
+def model1(c):
     num_fiters_1 = 128
     kernel_size_1 = (32,32)
     kernel_size_2 = (4,4)
@@ -116,10 +118,10 @@ def model1(x_train, x_test, nb_epoch, comp_ratio, batch_size, c, snr, saver_step
     input = Input(shape=(32, 32, 3))
     e = Dense(c)(input)
 
-    c = NormalizationNoise()(e)
+    noise = NormalizationNoise()(e)
 
     # Define Decoder Layers (Receiver)
-    d1 = Conv2D(filters=num_fiters_1, strides=1, kernel_size=kernel_size_1, padding='same')(c)
+    d1 = Conv2D(filters=num_fiters_1, strides=1, kernel_size=kernel_size_1, padding='same')(noise)
     d1 = BatchNormalization()(d1)
     d1 = Activation('elu')(d1)
 
