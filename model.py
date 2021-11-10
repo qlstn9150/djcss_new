@@ -4,15 +4,17 @@ keras: v2.3.1
 '''
 import os
 os.environ['KERAS_BACKEND'] = 'tensorflow'
-from keras.layers import Conv2D, Layer, Input, Conv2DTranspose, UpSampling2D, Cropping2D
-from keras.optimizers import Adam
-from keras.layers.advanced_activations import PReLU
-from keras.models import Model
+
 import keras
 import tensorflow as tf
 import numpy as np
 import tensorflow.keras.backend as K
 
+from keras.layers import Conv2D, Layer, Input, Conv2DTranspose, UpSampling2D, Cropping2D
+from keras.layers import Add, Dense, BatchNormalization, Activation
+from keras.layers.advanced_activations import PReLU
+from keras.optimizers import Adam
+from keras.models import Model
 
 class NormalizationNoise(Layer):
     def __init__(self, snr_db_def=20, P_def=1, name='NormalizationNoise', **kwargs):
@@ -84,7 +86,6 @@ class NormalizationNoise(Layer):
 
             return z_cap_Real
 
-
 class ModelCheckponitsHandler(tf.keras.callbacks.Callback):
     def __init__(self, comp_ratio, snr_db, autoencoder, step):
         super(ModelCheckponitsHandler, self).__init__()
@@ -105,81 +106,6 @@ class ModelCheckponitsHandler(tf.keras.callbacks.Callback):
 def Calculate_filters(comp_ratio, F=5, n=3072):
     K = (comp_ratio * n) / F ** 2
     return int(K)
-
-
-def TrainAutoEncoder(x_train, x_test, nb_epoch, comp_ratio, batch_size, c, snr, saver_step=50):
-    ############################### Buliding Encoder ##############################
-    ''' Correspondance of different arguments w.r.t to literature: filters = K, kernel_size = FxF, strides = S'''
-    input_images = Input(shape=(32, 32, 3))
-    # P = Input(shape=(), name='Power')
-    # snr_db = Input(shape=(), name='SNR_DB')
-    # 1st convolutional layer
-    conv1 = Conv2D(filters=16, kernel_size=(5, 5), strides=2, padding='valid', kernel_initializer='he_normal')(
-        input_images)
-    prelu1 = PReLU()(conv1)
-    # 2nd convolutional layer
-    conv2 = Conv2D(filters=80, kernel_size=(5, 5), strides=2, padding='valid', kernel_initializer='he_normal')(prelu1)
-    prelu2 = PReLU()(conv2)
-    # 3rd convolutional layer
-    conv3 = Conv2D(filters=50, kernel_size=(5, 5), strides=1, padding='same', kernel_initializer='he_normal')(prelu2)
-    prelu3 = PReLU()(conv3)
-    # 4th convolutional layer
-    conv4 = Conv2D(filters=40, kernel_size=(5, 5), strides=1, padding='same', kernel_initializer='he_normal')(prelu3)
-    prelu4 = PReLU()(conv4)
-    # 5th convolutional layer
-    conv5 = Conv2D(filters=c, kernel_size=(5, 5), strides=1, padding='same', kernel_initializer='he_normal')(prelu4)
-    encoder = PReLU()(conv5)
-
-    real_prod = NormalizationNoise()(encoder)
-
-    ############################### Building Decoder ##############################
-    # 1st Deconvolutional layer
-    decoder = Conv2DTranspose(filters=40, kernel_size=(5, 5), strides=1, padding='same',
-                              kernel_initializer='he_normal')(real_prod)
-    decoder = PReLU()(decoder)
-    # 2nd Deconvolutional layer
-    decoder = Conv2DTranspose(filters=50, kernel_size=(5, 5), strides=1, padding='same',
-                              kernel_initializer='he_normal')(decoder)
-    decoder = PReLU()(decoder)
-    # 3rd Deconvolutional layer
-    decoder = Conv2DTranspose(filters=80, kernel_size=(5, 5), strides=1, padding='same',
-                              kernel_initializer='he_normal')(decoder)
-    decoder = PReLU()(decoder)
-    # 4th Deconvolutional layer
-    decoder = Conv2DTranspose(filters=16, kernel_size=(5, 5), strides=2, padding='valid',
-                              kernel_initializer='he_normal')(decoder)
-    decoder = PReLU()(decoder)
-    # decoder_up = UpSampling2D((2,2))(decoder)
-    # 5th Deconvolutional layer
-    decoder = Conv2DTranspose(filters=3, kernel_size=(5, 5), strides=2, padding='valid', kernel_initializer='he_normal',
-                              activation='sigmoid')(decoder)
-    # decoder = PReLU()(decoder)
-    decoder_up = UpSampling2D((2, 2))(decoder)
-    decoder = Cropping2D(cropping=((13, 13), (13, 13)))(decoder_up)
-    ############################### Buliding Models ###############################
-    autoencoder = Model(input_images, decoder)
-
-    K.set_value(autoencoder.get_layer('normalization_noise_1').snr_db, snr)
-    autoencoder.compile(optimizer=Adam(learning_rate=0.0001), loss='mse', metrics=['accuracy'])
-    autoencoder.summary()
-    print('\t-----------------------------------------------------------------')
-    print('\t|\t\t\t\t\t\t\t\t|')
-    print('\t|\t\t\t\t\t\t\t\t|')
-    print('\t| Training Parameters: Filter Size: {0}, Compression ratio: {1} |'.format(c, comp_ratio))
-    print('\t|\t\t\t  SNR: {0} dB\t\t\t\t|'.format(snr))
-    print('\t|\t\t\t\t\t\t\t\t|')
-    print('\t|\t\t\t\t\t\t\t\t|')
-    print('\t-----------------------------------------------------------------')
-    tb = keras.callbacks.tensorboard_v1.TensorBoard(
-        log_dir='./Tensorboard/CompRatio{0}_SNR{1}'.format(str(comp_ratio), str(snr)))
-    os.makedirs('./checkpoints/CompRatio{0}_SNR{1}'.format(str(comp_ratio), str(snr)), exist_ok=True)
-    checkpoint = keras.callbacks.callbacks.ModelCheckpoint(
-        filepath='./checkpoints/CompRatio{0}_SNR{1}'.format(str(comp_ratio), str(snr)) + '/Autoencoder.h5',
-        monitor='val_loss', save_best_only=True)
-    ckpt = ModelCheckponitsHandler(comp_ratio, snr, autoencoder, step=saver_step)
-    history = autoencoder.fit(x=x_train, y=x_train, batch_size=batch_size, epochs=nb_epoch,
-                              callbacks=[tb, checkpoint, ckpt], validation_data=(x_test, x_test))
-    return history
 
 def model1(x_train, x_test, nb_epoch, comp_ratio, batch_size, c, snr, saver_step=50):
     num_fiters_1 = 128
@@ -206,24 +132,5 @@ def model1(x_train, x_test, nb_epoch, comp_ratio, batch_size, c, snr, saver_step
     output = Conv2D(filters=3, strides=1, kernel_size=kernel_size_3, padding='same', activation='softmax')(d2)
 
     model = Model(inputs=input, outputs=output)
-
-    K.set_value(model.get_layer('normalization_noise_1').snr_db, snr)
-    model.compile(optimizer=Adam(learning_rate=0.001), loss='mse', metrics=['accuracy'])
-    model.summary()
-    print('\t-----------------------------------------------------------------')
-    print('\t|\t\t\t\t\t\t\t\t|')
-    print('\t|\t\t\t\t\t\t\t\t|')
-    print('\t| Training Parameters: Filter Size: {0}, Compression ratio: {1} |'.format(c, comp_ratio))
-    print('\t|\t\t\t  SNR: {0} dB\t\t\t\t|'.format(snr))
-    print('\t|\t\t\t\t\t\t\t\t|')
-    print('\t|\t\t\t\t\t\t\t\t|')
-    print('\t-----------------------------------------------------------------')
-    tb = TensorBoard(log_dir='./Tensorboard_DN/CompRatio{0}_SNR{1}'.format(str(comp_ratio), str(snr)))
-    #os.makedirs('./checkpoints_DN/CompRatio{0}_SNR{1}'.format(str(comp_ratio), str(snr)), exist_ok=True)
-    checkpoint = ModelCheckpoint(
-        filepath='./checkpoints_DN/CompRatio{0}_SNR{1}.h5'.format(str(comp_ratio), str(snr)),
-        monitor='val_loss', save_best_only=True)
-    ckpt = ModelCheckponitsHandler(comp_ratio, snr, model, step=saver_step)
-    history = model.fit(x=x_train, y=x_train, batch_size=batch_size, epochs=nb_epoch,
-                              callbacks=[tb, checkpoint, ckpt], validation_data=(x_test, x_test))
-    return history
+    #model.summary()
+    return model
