@@ -1,6 +1,7 @@
 # Joint Source-Channel Coding
 
-## version  
-python: 3.6  
-tensorflow: v1.15.0  
-keras: v2.3.1
+#### Requirements
+* python == 3.6
+* tensorflow == 1.15.0
+* keras == 2.3.1
+
