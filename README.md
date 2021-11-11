@@ -1,4 +1,4 @@
-# Joint Source-Channel Coding
+# Deep Joint Source-Channel Coding
 
 #### Requirements
 * python == 3.6
