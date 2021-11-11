@@ -20,14 +20,16 @@ x_train, x_test = normalize_pixels(trainX, testX)
 
 ####################################################################################################
 # test
-def comp_eval(model_str, x_test, compression_ratios, snr, mode='multiple'):
-    model_dic = {'SNR': [], 'Pred_Images': [], 'PSNR': [], 'SSIM': []}
+def eval(model_str, x_test, compression_ratios, comp_ratio, snr, snr_test, snr_train, mode='multiple'):
+    model_dic = {'SNR': [], 'Pred_Images': [], 'PSNR': [], 'SSIM': [],
+                 'Train_snr': [snr_train], 'Test_snr': [], 'PSNR2': []}
     model_dic['SNR'].append(snr)
     for comp_ratio in compression_ratios:
         tf.keras.backend.clear_session()
         path = './checkpoints/' + model_str + '_CompRatio{0}_SNR{1}.h5'.format(comp_ratio, snr)
         autoencoder = load_model(path, custom_objects={'NormalizationNoise': NormalizationNoise})
         K.set_value(autoencoder.get_layer('normalization_noise_1').snr_db, snr)
+
         pred_images = autoencoder.predict(x_test) * 255
         pred_images = pred_images.astype('uint8')
         ssim = structural_similarity(testX, pred_images, multichannel=True)
@@ -35,6 +37,60 @@ def comp_eval(model_str, x_test, compression_ratios, snr, mode='multiple'):
         model_dic['Pred_Images'].append(pred_images)
         model_dic['PSNR'].append(psnr)
         model_dic['SSIM'].append(ssim)
+        print('Comp_Ratio = ', comp_ratio)
+        print('PSNR = ', psnr)
+        print('SSIM = ', ssim)
+        print('\n')
+
+    for snr in snr_test:
+        tf.keras.backend.clear_session()
+        path = './checkpoints/' + model_str + '_CompRatio{0}_SNR{1}/Autoencoder.h5'.format(comp_ratio, snr_train)
+        autoencoder = load_model(path, custom_objects={'NormalizationNoise': NormalizationNoise})
+        K.set_value(autoencoder.get_layer('normalization_noise_1').snr_db, snr)
+
+        pred_images = autoencoder.predict(x_test) * 255
+        pred_images = pred_images.astype('uint8')
+        psnr = peak_signal_noise_ratio(testX, pred_images)
+        model_dic['Test_snr'].append(snr)
+        model_dic['PSNR2'].append(psnr)
+        print('Test SNR = ', snr)
+        print('PSNR2 = ', psnr)
+        print('\n')
+
+        path = './result_txt/' + model_str + '_CompRatio{0}_SNR{1}.txt'.format(comp_ratio, snr)
+        with open(path, 'w') as f:
+            print(compression_ratios, '\n', model_dic['PSNR'], '\n', '\n',
+                  snr_test, '\n', model_dic['PSNR2'], file=f)
+        f.closed
+
+    return model_dic
+
+def comp_eval(model_str, x_test, compression_ratios,  snr, mode='multiple'):
+    model_dic = {'SNR': [], 'Pred_Images': [], 'PSNR': [], 'SSIM': []}
+    model_dic['SNR'].append(snr)
+    for comp_ratio in compression_ratios:
+        tf.keras.backend.clear_session()
+        path = './checkpoints/' + model_str + '_CompRatio{0}_SNR{1}.h5'.format(comp_ratio, snr)
+        autoencoder = load_model(path, custom_objects={'NormalizationNoise': NormalizationNoise})
+        K.set_value(autoencoder.get_layer('normalization_noise_1').snr_db, snr)
+
+        pred_images = autoencoder.predict(x_test) * 255
+        pred_images = pred_images.astype('uint8')
+        ssim = structural_similarity(testX, pred_images, multichannel=True)
+        psnr = peak_signal_noise_ratio(testX, pred_images)
+        model_dic['Pred_Images'].append(pred_images)
+        model_dic['PSNR'].append(psnr)
+        model_dic['SSIM'].append(ssim)
+        print('Comp_Ratio = ', comp_ratio)
+        print('PSNR = ', psnr)
+        print('SSIM = ', ssim)
+        print('\n')
+
+        path = './comp_txt/' + model_str + '_CompRatio{0}_SNR{1}.txt'.format(comp_ratio, snr)
+        with open(path, 'w') as f:
+            print(compression_ratios, '\n', model_dic['PSNR'], file=f)
+        f.closed
+
     return model_dic
 
 
@@ -73,11 +129,21 @@ def snr_eval(model_str, x_test, comp_ratio, snr_test, snr_train):
         path = './checkpoints/' + model_str + '_CompRatio{0}_SNR{1}/Autoencoder.h5'.format(comp_ratio, snr_train)
         autoencoder = load_model(path, custom_objects={'NormalizationNoise': NormalizationNoise})
         K.set_value(autoencoder.get_layer('normalization_noise_1').snr_db, snr)
+
         pred_images = autoencoder.predict(x_test) * 255
         pred_images = pred_images.astype('uint8')
         psnr = peak_signal_noise_ratio(testX, pred_images)
         model_dic['Test_snr'].append(snr)
         model_dic['PSNR'].append(psnr)
+        print('Test SNR = ', snr)
+        print('PSNR = ', psnr)
+        print('\n')
+
+        path = './test_txt/' + model_str + '_CompRatio{0}_SNR{1}.txt'.format(comp_ratio, snr)
+        with open(path, 'w') as f:
+            print(snr_test, '\n', model_dic['PSNR'], file=f)
+        f.closed
+
     return model_dic
 
 # plot
