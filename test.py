@@ -64,15 +64,6 @@ def comp_plot(model_str, x_test, compression_ratios, snr_lst, title, x_lablel, y
         plt.show()
         return history
 
-
-# 실행
-model_str = ['basic', 'model1']
-compression_ratios = [0.06, 0.26, 0.49]
-snr_train = [10] #0, 10, 20
-
-comp_plot(model_str, x_test, compression_ratios, snr_train, title='AWGN Channel', x_lablel='k/n', y_label='PSNR (dB)')
-
-
 ####################################################################################################
 # test
 def snr_eval(model_str, x_test, comp_ratio, snr_test, snr_train):
@@ -115,11 +106,17 @@ def snr_plot(model_str, x_test, compression_ratio, snr_train, title, x_lablel, y
         return history
 
 
-# 실행
-model_str = ['basic', 'model1']
+### 실행
+#plot1
+model_str = ['model1']
+compression_ratios = [0.06] #0.26, 0.49
 snr_train = [10] #0, 10, 20
+
+comp_plot(model_str, x_test, compression_ratios, snr_train, title='AWGN Channel', x_lablel='k/n', y_label='PSNR (dB)')
+
+#plot2
 snr_test = [2, 4, 7, 10, 13, 16, 18, 22, 25, 27]
-comp_ratio = 0.17
+comp_ratio = 0.06
 snr_plot(model_str, x_test, comp_ratio, snr_train, title='AWGN Channel', x_lablel='SNR_test (dB)', y_label='PSNR (dB)')
 
 
