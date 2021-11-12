@@ -17,8 +17,7 @@ import json
 (trainX, _), (testX, _) = cifar10.load_data()
 x_train, x_test = normalize_pixels(trainX, testX)
 
-'''
-# test
+#save
 def comp_eval(model_str, x_test, compression_ratios, snr):
     model_dic = {'SNR': [], 'Pred_Images': [], 'PSNR': [], 'SSIM': []}
     model_dic['SNR'].append(snr)
@@ -47,7 +46,6 @@ def comp_eval(model_str, x_test, compression_ratios, snr):
         f.closed
     return model_dic
 
-'''
 def test_eval(model_str, x_test, comp_ratio, snr, snr_test):
     model_dic = {'Test_snr': [], 'PSNR': []}
     for snr_t in snr_test:
@@ -72,32 +70,35 @@ def test_eval(model_str, x_test, comp_ratio, snr, snr_test):
 
     return model_dic
 
-'''
-# plot
-def comp_plot(model_str, x_test, compression_ratios, snr_train):
+#plot
+def comp_plot(model_str, compression_ratios, snr_train):
     markers = ["*", "s", "o", "X", "d", "v", "<", ">", "^", "P", "H", "|"]
     colors = list(mcolors.TABLEAU_COLORS)
-    history = []
 
     for model in model_str:
         i = 0
         for snr in snr_train:
-            print('\n----> Now Getting Data and Preparing Plot for SNR {0} dB <----'.format(snr))
-            model_dic = comp_eval(model, x_test, compression_ratios, snr) #mode='multiple'
-            history.append(model_dic)
-            label = model + ' (SNR={0}dB)'.format(snr)
-            plt.plot(compression_ratios, model_dic['PSNR'], ls='--', c=colors[i], marker=markers[i], label=label)
-            i += 1
+            for comp_ratio in compression_ratios:
+                path = './compratio_txt/' + model + '_CompRatio{0}_SNR{1}.txt'.format(comp_ratio, snr)
+                with open(path, 'r') as f:
+                    text = f.read()
+                    compression_ratios = text.split('\n')[0]
+                    compression_ratios = json.loads(compression_ratios)
+                    psnr = text.split('\n')[1]
+                    psnr = json.loads(psnr)
+                label = model + ' (SNR={0}dB)'.format(snr)
+                plt.plot(compression_ratios, psnr, ls='--', c=colors[i], marker=markers[i], label=label)
+                i += 1
 
-            plt.title('AWGN Channel')
-            plt.xlabel('k/n')
-            plt.ylabel('PSNR (dB)')
-            plt.grid(True)
+                plt.title('AWGN Channel')
+                plt.xlabel('k/n')
+                plt.ylabel('PSNR (dB)')
+                plt.grid(True)
 
-        #plt.ylim(11, 21)
-        plt.legend(loc='lower right')
-        plt.show()
-'''
+            #plt.ylim(11, 21)
+            plt.legend(loc='lower right')
+            plt.show()
+
 def test_plot(model_str, x_test, comp_ratio, snr_train, snr_test):
     markers = ["*", "s", "o", "X", "d", "v", "<", ">", "^", "P", "H", "|"]
     colors = list(mcolors.TABLEAU_COLORS)
@@ -117,25 +118,25 @@ def test_plot(model_str, x_test, comp_ratio, snr_train, snr_test):
             plt.ylabel('PSNR (dB)')
             plt.grid(True)
 
-        plt.ylim(11, 21)
         plt.legend(loc='lower right')
         plt.show()
 
 
 
-### 실행
-#plot1
+
+#model
 model_str = ['model1']
-'''
+
+###plot1###
 compression_ratios = [0.06] #0.26, 0.49
 snr_train = [10] #0, 10, 20
+#save
+comp_eval(model_str, x_test, compression_ratios, snr=10)
+#plot
+#comp_plot(model_str, x_test, compression_ratios, snr_train)
 
-comp_plot(model_str, x_test, compression_ratios, snr_train)
-
-'''
-#plot2
-comp_ratio = 0.06
+###plot2###
+comp_ratio = 0.26
 snr_train = [10]
-snr_test = [2, 4, 7, 10, 13, 16, 18, 22, 25, 27]
-
+snr_test = [2, 10, 18, 26] #2, 4, 7, 10, 13, 16, 18, 22, 25, 27
 test_plot(model_str, x_test, comp_ratio, snr_train, snr_test)

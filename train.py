@@ -14,7 +14,6 @@ def train(model_str, model_f, compression_ratios, nb_epoch, snr=10, batch_size=1
         tf.keras.backend.clear_session()
 
         c = Calculate_filters(comp_ratio)
-        print('---> System Will Train, Compression Ratio: '+str(comp_ratio)+'. <---')
         model = model_f(c)
 
         K.set_value(model.get_layer('normalization_noise_1').snr_db, snr)
@@ -22,7 +21,6 @@ def train(model_str, model_f, compression_ratios, nb_epoch, snr=10, batch_size=1
 
         tb = TensorBoard(log_dir='./Tensorboard/' + model_str + '_CompRatio{0}_SNR{1}'.format(str(comp_ratio), str(snr)))
 
-        # os.makedirs('./checkpoints_DN/CompRatio{0}_SNR{1}'.format(str(comp_ratio), str(snr)), exist_ok=True)
         checkpoint = ModelCheckpoint(filepath='./checkpoints/' + model_str + '_CompRatio{0}_SNR{1}.h5'.format(str(comp_ratio), str(snr)),
                                      monitor = 'val_loss', save_best_only = True)
 
@@ -39,7 +37,7 @@ def train(model_str, model_f, compression_ratios, nb_epoch, snr=10, batch_size=1
 #------------------------------------------
 model_str = 'model1'
 model_f = model1
-compression_ratios = [0.26, 0.49] #0.06
+compression_ratios = [0.49] #0.06, 0.26
 nb_epoch = 5
 
 train(model_str, model_f, compression_ratios, nb_epoch)
