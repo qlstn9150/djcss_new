@@ -9,12 +9,12 @@
     
 
 - 성능 평가1 (압축률에 따른 PSNR)  
-![kn_10](./kn_10.png)
+![kn_10](plot/kn_10.png)
 
 
 - 성능 평가2 (SNR_train과 SNR_test에 따른 PSNR)  
-![test_0.06](./test_0.06.png)  
-![test_0.26](./test_0.26.png)
+![test_0.06](plot/test_0.06.png)  
+![test_0.26](plot/test_0.26.png)
 
 ### 향후 계획
 - 기존 논문 모델 실행
