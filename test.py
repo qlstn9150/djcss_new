@@ -41,7 +41,7 @@ def comp_eval(model_str, x_test, compression_ratios, snr_train):
                 #print('SSIM = ', ssim)
                 print('\n')
 
-            path = './compratio_txt/{0}_SNR{1}.txt'.format(model, snr)
+            path = './result_txt/plot1_{0}_SNR{1}.txt'.format(model, snr)
             with open(path, 'w') as f:
                 print(compression_ratios, '\n', model_dic['PSNR'], file=f)
             f.closed
@@ -49,27 +49,33 @@ def comp_eval(model_str, x_test, compression_ratios, snr_train):
 
 def comp_plot(model_str, snr_train):
     colors = list(mcolors.TABLEAU_COLORS)
+    marker = ['o', 'H']
+    i = 0
     for model in model_str:
-        i = 0
+        j = 0
         for snr in snr_train:
-            path = './compratio_txt/{0}_SNR{1}.txt'.format(model, snr)
+            path = './result_txt/plot1_{0}_SNR{1}.txt'.format(model, snr)
             with open(path, 'r') as f:
                 text = f.read()
                 compression_ratios = text.split('\n')[0]
                 compression_ratios = json.loads(compression_ratios)
                 psnr = text.split('\n')[1]
                 psnr = json.loads(psnr)
-            plt.plot(compression_ratios, psnr, ls=':', c=colors[i], marker='o', label=model)
-            plt.title('AWGN Channel (SNR={0}dB)'.format(snr))
-            plt.xlabel('k/n')
-            plt.ylabel('PSNR (dB)')
-            plt.grid(True)
-            i += 1
-        plt.legend(loc='lower right')
-        plt.show()
+            label = '{0} (SNR={1}dB)'.format(model, snr)
+            plt.plot(compression_ratios, psnr, ls='-', c=colors[i], marker=marker[j], label=label)
+            j += 1
+        i += 1
+    plt.title('AWGN Channel')
+    plt.xlabel('k/n')
+    plt.ylabel('PSNR (dB)')
+    plt.grid(True)
+    plt.legend(loc='lower right')
+    plt.savefig('./plot/comp_{0}_CompRatio{1}_SNR{2}.png'.format(model_str, compression_ratios, snr_train))
+    plt.show()
 
 
-def test_eval(model_str, x_test, comp_ratio, snr_test):
+
+def test_eval(model_str, x_test, comp_ratio, snr_train, snr_test):
     model_dic = {'Test_snr': [], 'PSNR': []}
     for model in model_str:
         for snr in snr_train:
@@ -88,7 +94,7 @@ def test_eval(model_str, x_test, comp_ratio, snr_test):
                 print('PSNR = ', psnr)
                 print('\n')
 
-                path = './test_txt/{0}_CompRatio{1}_SNR{2}.txt'.format(model, comp_ratio, snr)
+                path = './result_txt/plot2_{0}_CompRatio{1}_SNR{2}.txt'.format(model, comp_ratio, snr)
                 with open(path, 'w') as f:
                     print(snr_test, '\n', model_dic['PSNR'], file=f)
                 f.closed
@@ -96,44 +102,48 @@ def test_eval(model_str, x_test, comp_ratio, snr_test):
 
 def test_plot(model_str, comp_ratio, snr_train):
     colors = list(mcolors.TABLEAU_COLORS)
+    markers = ['s', 'H']
+    i = 0
     for model in model_str:
-        i = 0
+        j = 0
         for snr in snr_train:
-            path = './test_txt/{0}_CompRatio{1}_SNR{2}.txt'.format(model, comp_ratio, snr)
+            path = './result_txt/plot2_{0}_CompRatio{1}_SNR{2}.txt'.format(model, comp_ratio, snr)
             with open(path, 'r') as f:
                 text = f.read()
                 snr_test = text.split('\n')[0]
                 snr_test = json.loads(snr_test)
                 psnr = text.split('\n')[1]
                 psnr = json.loads(psnr)
-            plt.plot(snr_test, psnr, ls='--', c=colors[i], marker="s", label=model)
-            plt.title('AWGN Channel (k/n={0}, SNR_train={1})'.format(comp_ratio, snr))
-            plt.xlabel('SNR_test (dB)')
-            plt.ylabel('PSNR (dB)')
-            plt.grid(True)
-            i += 1
-        plt.legend(loc='lower right')
-        plt.show()
+            label = '{0} (SNR={1}dB)'.format(model, snr)
+            plt.plot(snr_test, psnr, ls='--', c=colors[i], marker=markers[j], label=label)
+            j += 1
+        i += 1
+    plt.title('AWGN Channel (k/n={0})'.format(comp_ratio))
+    plt.xlabel('SNR_test (dB)')
+    plt.ylabel('PSNR (dB)')
+    plt.grid(True)
+    plt.legend(loc='lower right')
+    plt.savefig('./plot/test_{0}_CompRatio{1}_SNR{2}.png'.format(model_str, comp_ratio, snr_train))
+    plt.show()
 
 
 
 #실행
 
-#model
-model_str = ['model1']
-
 #===========plot1================
-compression_ratios = [0.06, 0.26] #0.26, 0.49
+model_str = ['basic', 'model1', 'model2']
+compression_ratios = [0.06, 0.26, 0.49] #0.26, 0.49
 snr_train = [10] #0, 10, 20
-comp_eval(model_str, x_test, compression_ratios, snr_train)
-#comp_plot(model_str, snr_train)
+#comp_eval(model_str, x_test, compression_ratios, snr_train)
+comp_plot(model_str, snr_train)
 
 #===========plot2================
-comp_ratio = 0.26
+model_str = ['model2']
+comp_ratio = 0.26 #0.06, 0.26, 0.49
 snr_train = [10]
 snr_test = [2, 10, 18, 26] #2, 4, 7, 10, 13, 16, 18, 22, 25, 27
 test_eval(model_str, x_test, comp_ratio, snr_train, snr_test)
-test_plot(model_str, comp_ratio, snr_train)
+#test_plot(model_str, comp_ratio, snr_train)
 
 
 

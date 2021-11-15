@@ -1,20 +1,27 @@
 # Deep Joint Source-Channel Coding
 
-### 진행상황(21.11.13)
-- model1 구조로 2개 모델 실행함
-  - snr = 10
-  - k/n = 0.06, 0.26
+#### 진행상황(21.11.15)
+- model_CompRatio_SNR
+  - basic(0.06, 0.26, 0.49)_(10, 20)
+  - model1_(0.06, 0.26)_(10)
+  - model2_(0.06, 0.26, 0.49)_(10)
+  
+- parameter
   - epochs = 5
   - batch size = 16  
     
 
 - 성능 평가1 (압축률에 따른 PSNR)  
-![kn_10](plot/kn_10.png)
+![plot1](plot/comp_%5B'basic',%20'model1',%20'model2'%5D_CompRatio%5B0.06,%200.26,%200.49%5D_SNR%5B10%5D.png)
 
+- 성능 평가2 (k/n=0.06)  
+![plot2](plot/test)
 
-- 성능 평가2 (SNR_train과 SNR_test에 따른 PSNR)  
-![test_0.06](plot/test_0.06.png)  
-![test_0.26](plot/test_0.26.png)
+- 성능 평가2 (k/n=0.26)  
+![plot2](plot/test)
+
+- 성능 평가2 (k/n=0.49)  
+![plot2](plot/test)
 
 ### 향후 계획
 - 기존 논문 모델 실행

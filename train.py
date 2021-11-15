@@ -24,12 +24,12 @@ def train(model_str, model_f, compression_ratios, nb_epoch, snr=10, batch_size=1
         checkpoint = ModelCheckpoint(filepath='./checkpoints/' + model_str + '_CompRatio{0}_SNR{1}.h5'.format(str(comp_ratio), str(snr)),
                                      monitor = 'val_loss', save_best_only = True)
 
-        ckpt = ModelCheckponitsHandler(model_str, comp_ratio, snr, model, step=50)
+        #ckpt = ModelCheckponitsHandler(model_str, comp_ratio, snr, model, step=50)
 
 
         start = time.clock()
         model.fit(x=x_train, y=x_train, batch_size=batch_size, epochs=nb_epoch,
-                  callbacks=[tb, checkpoint, ckpt], validation_data=(x_test, x_test))
+                  callbacks=[tb, checkpoint], validation_data=(x_test, x_test))
         end = time.clock()
         print('The NN has trained ' + str(end - start) + ' s')
 
