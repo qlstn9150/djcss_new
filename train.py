@@ -8,7 +8,7 @@ import time
 (trainX, _), (testX, _) = cifar10.load_data()
 x_train, x_test = normalize_pixels(trainX, testX)
 
-def train(model_str, model_f, compression_ratios, nb_epoch, snr=10, batch_size=16):
+def train(model_str, model_f, compression_ratios, snr, nb_epoch, batch_size=16):
 
     for comp_ratio in compression_ratios:
         tf.keras.backend.clear_session()
@@ -19,9 +19,12 @@ def train(model_str, model_f, compression_ratios, nb_epoch, snr=10, batch_size=1
         K.set_value(model.get_layer('normalization_noise_1').snr_db, snr)
         model.compile(optimizer=Adam(learning_rate=0.001), loss='mse', metrics=['accuracy'])
 
-        tb = TensorBoard(log_dir='./Tensorboard/' + model_str + '_CompRatio{0}_SNR{1}'.format(str(comp_ratio), str(snr)))
+        os.makedirs('./Tensorboard/{0}'.format(model_str), exist_ok=True)
+        os.makedirs('./checkpoints/{0}'.format(model_str), exist_ok=True)
 
-        checkpoint = ModelCheckpoint(filepath='./checkpoints/' + model_str + '_CompRatio{0}_SNR{1}.h5'.format(str(comp_ratio), str(snr)),
+        tb = TensorBoard(log_dir='./Tensorboard/{0}/CompRatio{1}_SNR{2}'.format(model_str, str(comp_ratio), str(snr)))
+
+        checkpoint = ModelCheckpoint(filepath='./checkpoints/{0}/CompRatio{1}_SNR{2}.h5'.format(model_str, str(comp_ratio), str(snr)),
                                      monitor = 'val_loss', save_best_only = True)
 
         #ckpt = ModelCheckponitsHandler(model_str, comp_ratio, snr, model, step=50)
@@ -35,9 +38,10 @@ def train(model_str, model_f, compression_ratios, nb_epoch, snr=10, batch_size=1
 
 
 #------------------------------------------
-model_str = 'model1'
+model_str = 'basic'
 model_f = model1
-compression_ratios = [0.49] #0.06, 0.26
+compression_ratios = [0.06, 0.26, 0.49] #0.06, 0.26
+snr = 0
 nb_epoch = 5
 
-train(model_str, model_f, compression_ratios, nb_epoch)
+train(model_str, model_f, compression_ratios, snr, nb_epoch)

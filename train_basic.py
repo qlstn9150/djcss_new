@@ -8,7 +8,7 @@ import time
 (trainX, _), (testX, _) = cifar10.load_data()
 x_train, x_test = normalize_pixels(trainX, testX)
 
-def train(model_str, model_f, compression_ratios, nb_epoch, snr=10, batch_size=16):
+def train(model_str, model_f, compression_ratios, snr, nb_epoch, batch_size=16):
 
     for comp_ratio in compression_ratios:
         tf.keras.backend.clear_session()
@@ -38,6 +38,7 @@ def train(model_str, model_f, compression_ratios, nb_epoch, snr=10, batch_size=1
 model_str = 'model2'
 model_f = model2
 compression_ratios = [0.06, 0.26, 0.49] #0.06, 0.26
+snr = 0
 nb_epoch = 5
 
-train(model_str, model_f, compression_ratios, nb_epoch)
+train(model_str, model_f, compression_ratios, snr, nb_epoch)

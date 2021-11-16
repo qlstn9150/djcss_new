@@ -15,10 +15,10 @@
 ![plot1](plot/comp_%5B'basic',%20'model1',%20'model2'%5D_CompRatio%5B0.06,%200.26,%200.49%5D_SNR%5B10%5D.png)
 
 - 성능 평가2 (k/n=0.06)  
-![plot2](plot/test)
+![plot2](plot/test_%5B'basic',%20'model1',%20'model2'%5D_CompRatio0.06_SNR%5B10%5D.png)
 
 - 성능 평가2 (k/n=0.26)  
-![plot2](plot/test)
+![plot2](plot/test_%5B'basic',%20'model1',%20'model2'%5D_CompRatio0.26_SNR%5B10%5D.png)
 
 - 성능 평가2 (k/n=0.49)  
 ![plot2](plot/test)
