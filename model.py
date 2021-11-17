@@ -12,6 +12,7 @@ import tensorflow.keras.backend as K
 
 from keras.layers import Conv2D, Layer, Input, Conv2DTranspose, UpSampling2D, Cropping2D
 from keras.layers import Add, Dense, BatchNormalization, Activation
+from keras.layers import GRU
 from keras.layers.advanced_activations import PReLU
 from keras.optimizers import Adam
 from keras.models import Model
@@ -236,3 +237,65 @@ def model2(c):
     # Build System Model
     model = Model(model_input, model_output)
     return model
+
+
+
+def new(c):
+    ############################### Buliding Encoder ##############################
+    ''' Correspondance of different arguments w.r.t to literature: filters = K, kernel_size = FxF, strides = S'''
+    input_images = Input(shape=(32, 32, 3))
+
+    # 1st convolutional layer
+    conv1 = Conv2D(filters=16, kernel_size=(5, 5), strides=2, padding='valid', kernel_initializer='he_normal')(
+        input_images)
+    prelu1 = PReLU()(conv1)
+    '''
+    # 2nd convolutional layer
+    conv2 = Conv2D(filters=80, kernel_size=(5, 5), strides=2, padding='valid', kernel_initializer='he_normal')(prelu1)
+    prelu2 = PReLU()(conv2)
+    # 3rd convolutional layer
+    conv3 = Conv2D(filters=50, kernel_size=(5, 5), strides=1, padding='same', kernel_initializer='he_normal')(prelu2)
+    prelu3 = PReLU()(conv3)
+    # 4th convolutional layer
+    conv4 = Conv2D(filters=40, kernel_size=(5, 5), strides=1, padding='same', kernel_initializer='he_normal')(prelu3)
+    prelu4 = PReLU()(conv4)
+    # 5th convolutional layer
+    conv5 = Conv2D(filters=c, kernel_size=(5, 5), strides=1, padding='same', kernel_initializer='he_normal')(prelu4)
+    encoder = PReLU()(conv5)
+    '''
+    encoder = GRU(c, return_sequenc=True)(prelu1)
+
+    real_prod = NormalizationNoise()(encoder)
+
+    ############################### Building Decoder ##############################
+
+    d1 = GRU(16, return_sequenc=True)(prelu1)
+    '''
+    # 1st Deconvolutional layer
+    decoder = Conv2DTranspose(filters=40, kernel_size=(5, 5), strides=1, padding='same',
+                              kernel_initializer='he_normal')(real_prod)
+    decoder = PReLU()(decoder)
+    # 2nd Deconvolutional layer
+    decoder = Conv2DTranspose(filters=50, kernel_size=(5, 5), strides=1, padding='same',
+                              kernel_initializer='he_normal')(decoder)
+    decoder = PReLU()(decoder)
+    # 3rd Deconvolutional layer
+    decoder = Conv2DTranspose(filters=80, kernel_size=(5, 5), strides=1, padding='same',
+                              kernel_initializer='he_normal')(decoder)
+    decoder = PReLU()(decoder)
+    # 4th Deconvolutional layer
+    decoder = Conv2DTranspose(filters=16, kernel_size=(5, 5), strides=2, padding='valid',
+                              kernel_initializer='he_normal')(decoder)
+    decoder = PReLU()(decoder)
+    # decoder_up = UpSampling2D((2,2))(decoder)
+    # 5th Deconvolutional layer
+    decoder = Conv2DTranspose(filters=3, kernel_size=(5, 5), strides=2, padding='valid', kernel_initializer='he_normal',
+                              activation='sigmoid')(decoder)
+    # decoder = PReLU()(decoder)
+    decoder_up = UpSampling2D((2, 2))(decoder)
+    decoder = Cropping2D(cropping=((13, 13), (13, 13)))(decoder_up)
+    '''
+    d_output = GRU(3, return_sequence=True)
+    ############################### Buliding Models ###############################
+    autoencoder = Model(input_images, d_output)
+    return autoencoder

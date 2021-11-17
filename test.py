@@ -25,7 +25,7 @@ def comp_eval(model_str, x_test, compression_ratios, snr_train):
         for snr in snr_train:
             for comp_ratio in compression_ratios:
                 tf.keras.backend.clear_session()
-                path = './checkpoints/{0}_CompRatio{1}_SNR{2}.h5'.format(model, comp_ratio, snr)
+                path = './checkpoints/{0}/CompRatio{1}_SNR{2}.h5'.format(model, comp_ratio, snr)
                 autoencoder = load_model(path, custom_objects={'NormalizationNoise': NormalizationNoise})
                 K.set_value(autoencoder.get_layer('normalization_noise_1').snr_db, snr)
 
@@ -41,7 +41,7 @@ def comp_eval(model_str, x_test, compression_ratios, snr_train):
                 #print('SSIM = ', ssim)
                 print('\n')
 
-            path = './result_txt/plot1_{0}_SNR{1}.txt'.format(model, snr)
+            path = './result_txt/plot1/{0}_SNR{1}.txt'.format(model, snr)
             with open(path, 'w') as f:
                 print(compression_ratios, '\n', model_dic['PSNR'], file=f)
             f.closed
@@ -54,7 +54,7 @@ def comp_plot(model_str, snr_train):
     for model in model_str:
         j = 0
         for snr in snr_train:
-            path = './result_txt/plot1_{0}_SNR{1}.txt'.format(model, snr)
+            path = './result_txt/plot1/{0}_SNR{1}.txt'.format(model, snr)
             with open(path, 'r') as f:
                 text = f.read()
                 compression_ratios = text.split('\n')[0]
@@ -70,7 +70,7 @@ def comp_plot(model_str, snr_train):
     plt.ylabel('PSNR (dB)')
     plt.grid(True)
     plt.legend(loc='lower right')
-    plt.savefig('./plot/comp_{0}_CompRatio{1}_SNR{2}.png'.format(model_str, compression_ratios, snr_train))
+    plt.savefig('./plot/plot1/{0}_CompRatio{1}_SNR{2}.png'.format(model_str, compression_ratios, snr_train))
     plt.show()
 
 
@@ -81,7 +81,7 @@ def test_eval(model_str, x_test, comp_ratio, snr_train, snr_test):
         for snr in snr_train:
             for snr_t in snr_test:
                 tf.keras.backend.clear_session()
-                path = './checkpoints/{0}_CompRatio{1}_SNR{2}.h5'.format(model, comp_ratio, snr)
+                path = './checkpoints/{0}/CompRatio{1}_SNR{2}.h5'.format(model, comp_ratio, snr)
                 autoencoder = load_model(path, custom_objects={'NormalizationNoise': NormalizationNoise})
                 K.set_value(autoencoder.get_layer('normalization_noise_1').snr_db, snr_t)
 
@@ -94,7 +94,7 @@ def test_eval(model_str, x_test, comp_ratio, snr_train, snr_test):
                 print('PSNR = ', psnr)
                 print('\n')
 
-                path = './result_txt/plot2_{0}_CompRatio{1}_SNR{2}.txt'.format(model, comp_ratio, snr)
+                path = './result_txt/plot2/{0}_CompRatio{1}_SNR{2}.txt'.format(model, comp_ratio, snr)
                 with open(path, 'w') as f:
                     print(snr_test, '\n', model_dic['PSNR'], file=f)
                 f.closed
@@ -107,7 +107,7 @@ def test_plot(model_str, comp_ratio, snr_train):
     for model in model_str:
         j = 0
         for snr in snr_train:
-            path = './result_txt/plot2_{0}_CompRatio{1}_SNR{2}.txt'.format(model, comp_ratio, snr)
+            path = './result_txt/plot2/{0}_CompRatio{1}_SNR{2}.txt'.format(model, comp_ratio, snr)
             with open(path, 'r') as f:
                 text = f.read()
                 snr_test = text.split('\n')[0]
@@ -123,7 +123,7 @@ def test_plot(model_str, comp_ratio, snr_train):
     plt.ylabel('PSNR (dB)')
     plt.grid(True)
     plt.legend(loc='lower right')
-    plt.savefig('./plot/test_{0}_CompRatio{1}_SNR{2}.png'.format(model_str, comp_ratio, snr_train))
+    plt.savefig('./plot/plot2/{0}_CompRatio{1}_SNR{2}.png'.format(model_str, comp_ratio, snr_train))
     plt.show()
 
 
