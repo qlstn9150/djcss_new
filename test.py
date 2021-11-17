@@ -1,5 +1,7 @@
+'''
 import os
-os.environ['CUDA_VISIBLE_DEVICES'] = '0'
+os.environ['CUDA_VISIBLE_DEVICES'] = '4'
+'''
 
 from model import normalize_pixels
 
@@ -52,7 +54,8 @@ def comp_eval(model_str, x_test, compression_ratios, snr_train):
 
 def comp_plot(model_str, snr_train):
     colors = list(mcolors.TABLEAU_COLORS)
-    marker = ['o', 'H']
+    marker = ['o', '*']
+    ls = ['-', '--']
     i = 0
     for model in model_str:
         j = 0
@@ -65,7 +68,7 @@ def comp_plot(model_str, snr_train):
                 psnr = text.split('\n')[1]
                 psnr = json.loads(psnr)
             label = '{0} (SNR={1}dB)'.format(model, snr)
-            plt.plot(compression_ratios, psnr, ls='-', c=colors[i], marker=marker[j], label=label)
+            plt.plot(compression_ratios, psnr, ls=ls[j], c=colors[i], marker='o', label=label)
             j += 1
         i += 1
     plt.title('AWGN Channel')
@@ -134,11 +137,11 @@ def test_plot(model_str, comp_ratio, snr_train):
 #실행
 
 #===========plot1================
-model_str = ['basic']
+model_str = ['basic', 'model2']
 compression_ratios = [0.06, 0.26, 0.49] #0.26, 0.49
-snr_train = [0] #0, 10, 20
-comp_eval(model_str, x_test, compression_ratios, snr_train)
-#comp_plot(model_str, snr_train)
+snr_train = [0,10] #0, 10, 20
+#comp_eval(model_str, x_test, compression_ratios, snr_train)
+comp_plot(model_str, snr_train)
 
 #===========plot2================
 #model_str = ['model2']

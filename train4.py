@@ -42,10 +42,10 @@ def train(model_str, model_f, compression_ratios, snr, nb_epoch, batch_size=16):
 
 
 #------------------------------------------
-model_str = 'new2'
-model_f = new2
+model_str = 'model2'
+model_f = model2
 compression_ratios = [0.06, 0.26, 0.49] #0.06, 0.26
-snr = 10
+snr = 20
 nb_epoch = 5
 
 train(model_str, model_f, compression_ratios, snr, nb_epoch)
