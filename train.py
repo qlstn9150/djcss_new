@@ -1,3 +1,6 @@
+import os
+os.environ['CUDA_VISIBLE_DEVICES'] = '3'
+
 from model import *
 import tensorflow as tf
 from keras.datasets import cifar10
@@ -15,6 +18,7 @@ def train(model_str, model_f, compression_ratios, snr, nb_epoch, batch_size=16):
 
         c = Calculate_filters(comp_ratio)
         model = model_f(c)
+        model.summary()
 
         K.set_value(model.get_layer('normalization_noise_1').snr_db, snr)
         model.compile(optimizer=Adam(learning_rate=0.001), loss='mse', metrics=['accuracy'])
@@ -38,8 +42,8 @@ def train(model_str, model_f, compression_ratios, snr, nb_epoch, batch_size=16):
 
 
 #------------------------------------------
-model_str = 'new'
-model_f = new
+model_str = 'basic'
+model_f = basic
 compression_ratios = [0.06, 0.26, 0.49] #0.06, 0.26
 snr = 0
 nb_epoch = 5

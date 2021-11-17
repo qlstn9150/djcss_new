@@ -1,3 +1,6 @@
+import os
+os.environ['CUDA_VISIBLE_DEVICES'] = '0'
+
 from model import normalize_pixels
 
 import tensorflow as tf
