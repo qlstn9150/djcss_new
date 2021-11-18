@@ -24,10 +24,9 @@ x_train, x_test = normalize_pixels(trainX, testX)
 
 
 def comp_eval(model_str, x_test, compression_ratios, snr_train):
-    model_dic = {'SNR': [], 'Pred_Images': [], 'PSNR': [], 'SSIM': []}
-    model_dic['SNR'].append(snr_train)
     for model in model_str:
         for snr in snr_train:
+            model_dic = {'Pred_Images': [], 'PSNR': [], 'SSIM': []}
             for comp_ratio in compression_ratios:
                 tf.keras.backend.clear_session()
                 path = './checkpoints/{0}/CompRatio{1}_SNR{2}.h5'.format(model, comp_ratio, snr)
@@ -54,8 +53,8 @@ def comp_eval(model_str, x_test, compression_ratios, snr_train):
 
 def comp_plot(model_str, snr_train):
     colors = list(mcolors.TABLEAU_COLORS)
-    marker = ['o', '*']
-    ls = ['-', '--']
+    markers = ['o', '*', 'H']
+    #ls = ['-', '--']
     i = 0
     for model in model_str:
         j = 0
@@ -68,7 +67,7 @@ def comp_plot(model_str, snr_train):
                 psnr = text.split('\n')[1]
                 psnr = json.loads(psnr)
             label = '{0} (SNR={1}dB)'.format(model, snr)
-            plt.plot(compression_ratios, psnr, ls=ls[j], c=colors[i], marker='o', label=label)
+            plt.plot(compression_ratios, psnr, ls='-', c=colors[i], marker=markers[i], label=label)
             j += 1
         i += 1
     plt.title('AWGN Channel')
@@ -82,9 +81,9 @@ def comp_plot(model_str, snr_train):
 
 
 def test_eval(model_str, x_test, comp_ratio, snr_train, snr_test):
-    model_dic = {'Test_snr': [], 'PSNR': []}
     for model in model_str:
         for snr in snr_train:
+            model_dic = {'Test_snr': [], 'PSNR': []}
             for snr_t in snr_test:
                 tf.keras.backend.clear_session()
                 path = './checkpoints/{0}/CompRatio{1}_SNR{2}.h5'.format(model, comp_ratio, snr)
@@ -100,15 +99,15 @@ def test_eval(model_str, x_test, comp_ratio, snr_train, snr_test):
                 print('PSNR = ', psnr)
                 print('\n')
 
-                path = './result_txt/plot2/{0}_CompRatio{1}_SNR{2}.txt'.format(model, comp_ratio, snr)
-                with open(path, 'w') as f:
-                    print(snr_test, '\n', model_dic['PSNR'], file=f)
-                f.closed
+            path = './result_txt/plot2/{0}_CompRatio{1}_SNR{2}.txt'.format(model, comp_ratio, snr)
+            with open(path, 'w') as f:
+                print(snr_test, '\n', model_dic['PSNR'], file=f)
+            f.closed
 
 
 def test_plot(model_str, comp_ratio, snr_train):
     colors = list(mcolors.TABLEAU_COLORS)
-    markers = ['s', 'H']
+    markers = ['s', 'H', '^']
     i = 0
     for model in model_str:
         j = 0
@@ -137,16 +136,16 @@ def test_plot(model_str, comp_ratio, snr_train):
 #실행
 
 #===========plot1================
-model_str = ['basic', 'model2']
+model_str = ['basic', 'model2', 'new2']
 compression_ratios = [0.06, 0.26, 0.49] #0.26, 0.49
-snr_train = [0,10] #0, 10, 20
+snr_train = [0, 10, 20] #0, 10, 20
 #comp_eval(model_str, x_test, compression_ratios, snr_train)
-comp_plot(model_str, snr_train)
+#comp_plot(model_str, snr_train)
 
 #===========plot2================
-#model_str = ['model2']
+model_str = ['new2']
 comp_ratio = 0.49 #0.06, 0.26, 0.49
-snr_train = [0, 10]
+snr_train = [0, 10, 20]
 snr_test = [2, 10, 18, 26] #2, 4, 7, 10, 13, 16, 18, 22, 25, 27
 #test_eval(model_str, x_test, comp_ratio, snr_train, snr_test)
 #test_plot(model_str, comp_ratio, snr_train)
