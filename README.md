@@ -6,8 +6,10 @@
 ![plot1](plot/plot1/a.png)
 
 - 성능 평가2 (k/n=0.06)
-- 성능 평가2 (k/n=0.26)
+![plot2](plot/plot2/%5B'basic',%20'new2'%5D_CompRatio0.06_SNR%5B10,%2020%5D.png)
+- 성능 평가2 (k/n=0.26) : not completed
 - 성능 평가2 (k/n=0.49)  
+![plot2](plot/plot2/%5B'basic',%20'new2'%5D_CompRatio0.49_SNR%5B0,%2010,%2020%5D.png)
 
 
 
