@@ -294,29 +294,6 @@ def new2(c):
     autoencoder = Model(input_images, d_output)
     return autoencoder
 
-def new3(c):
-    ############################### Buliding Encoder ##############################
-    input_images = Input(shape=(32, 32, 3))
-    e_output = Dense(c)(input_images)
-    ################################ NOISE CHANNEL ################################
-    real_prod = NormalizationNoise()(e_output)
-    ############################### Building Decoder ##############################
-    d1 = Conv2D(40, (5,5), strides=1, padding='same',
-                kernel_initializer='he_normal', name='d_1')(real_prod)
-    d1 = BatchNormalization(name='d_2')(d1)
-    d1 = Activation('elu', name='d_3')(d1)
-
-    d2 = Conv2D(40, (5,5), strides=1, padding='same',
-                kernel_initializer='he_normal', name='d_7')(d1)
-    d2 = BatchNormalization(name='d_8')(d2)
-    d2 = Activation('elu', name='d_9')(d2)
-
-    # Output One hot vector and use Softmax to soft decoding
-    d_output = Conv2D(3, (1,1), strides=1, name='d_10', activation='softmax')(d2)
-
-    ############################### Buliding Models ###############################
-    autoencoder = Model(input_images, d_output)
-    return autoencoder
 
 def model3(c):
     ############################### Buliding Encoder ##############################
@@ -381,4 +358,48 @@ def model4(c):
                               activation='sigmoid')(d3)
     ############################### Buliding Models ###############################
     model = Model(input_images, d_output)
+    return model
+
+def model5(c):
+    ############################### Buliding Encoder ##############################
+    input_images = Input(shape=(32, 32, 3))
+    e_output = Dense(c)(input_images)
+    ################################ NOISE CHANNEL ################################
+    real_prod = NormalizationNoise()(e_output)
+    ############################### Building Decoder ##############################
+    d1 = Conv2D(40, (5,5), strides=1, padding='same',
+                kernel_initializer='he_normal', name='d_1')(real_prod)
+    d1 = BatchNormalization(name='d_2')(d1)
+    d1 = Activation('elu', name='d_3')(d1)
+
+    d2 = Conv2D(40, (5,5), strides=1, padding='same',
+                kernel_initializer='he_normal', name='d_7')(d1)
+    d2 = BatchNormalization(name='d_8')(d2)
+    d2 = Activation('elu', name='d_9')(d2)
+
+    # Output One hot vector and use Softmax to soft decoding
+    d_output = Conv2D(3, (1,1), strides=1, name='d_10', activation='softmax')(d2)
+
+    ############################### Buliding Models ###############################
+    autoencoder = Model(input_images, d_output)
+    return autoencoder
+
+def model6(c):
+    input_images = Input(shape=(32, 32, 3))
+
+    e1 = GRU(units=16, return_sequences=True)(input_images)
+
+    e2 = Conv2D(filters=c, kernel_size=(5, 5), strides=1, padding='same', kernel_initializer='he_normal')(e1)
+    e2 = PReLU()(e2)
+
+    ############################### NOISE ##############################
+    real_prod = NormalizationNoise()(e2)
+    ############################### Building Decoder ##############################
+    d1 = GRU(units=16, return_sequences=True)(real_prod)
+
+    d2 = Conv2D(filters=3, kernel_size=(5, 5), strides=1, padding='same', kernel_initializer='he_normal')(d1)
+    d2 = PReLU()(d2)
+
+    ############################### Buliding Models ###############################
+    model = Model(input_images, d2)
     return model

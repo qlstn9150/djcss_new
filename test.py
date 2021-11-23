@@ -138,15 +138,16 @@ def test_plot(model_str, comp_ratio, snr_train):
 #실행
 
 #===========plot1================
-model_str = ['basic', 'new2']
+model_str = ['model3', 'model4', 'model5']
+#model_str = ['model5']
 compression_ratios = [0.06, 0.26, 0.49] #0.26, 0.49
 snr_train = [0, 10, 20] #0, 10, 20
-#comp_eval(model_str, x_test, compression_ratios, snr_train)
+comp_eval(model_str, x_test, compression_ratios, snr_train)
 #comp_plot(model_str, snr_train)
 
 #===========plot2================
-model_str = ['new2']
-comp_ratio = 0.26 #0.06, 0.26, 0.49
+#model_str = ['new2']
+comp_ratio = 0.06 #0.06, 0.26, 0.49
 snr_train = [0, 10, 20]
 snr_test = [2, 10, 18, 26] #2, 4, 7, 10, 13, 16, 18, 22, 25, 27
 test_eval(model_str, x_test, comp_ratio, snr_train, snr_test)
