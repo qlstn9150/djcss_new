@@ -1,11 +1,17 @@
-'''
+
 import os
 os.environ['CUDA_VISIBLE_DEVICES'] = '4'
 '''
+os.environ['TF_CPP_MIN_LOG_LEVEL']='3'
+'''
+
 
 from model import normalize_pixels
 
-import tensorflow as tf
+import tensorflow.compat.v1 as tf #v.2
+tf.disable_v2_behavior() #v.2
+
+
 from keras.models import load_model
 from model import NormalizationNoise
 from keras.datasets import cifar10
@@ -17,6 +23,8 @@ from skimage.metrics import peak_signal_noise_ratio
 import matplotlib.pyplot as plt
 import matplotlib.colors as mcolors
 import json
+
+
 
 # 데이터 준비
 (trainX, _), (testX, _) = cifar10.load_data()
@@ -129,29 +137,27 @@ def test_plot(model_str, comp_ratio, snr_train):
     plt.xlabel('SNR_test (dB)')
     plt.ylabel('PSNR (dB)')
     plt.grid(True)
-    plt.legend(bbox_to_anchor=(1,0.5), loc='center right')
+    plt.legend(loc='lower right')
     plt.savefig('./plot/plot2/{0}_CompRatio{1}_SNR{2}.png'.format(model_str, comp_ratio, snr_train))
     plt.show()
 
 
 
 #실행
-
 #===========plot1================
-model_str = ['model3', 'model4', 'model5']
-#model_str = ['model5']
+model_str = ['basic', 'model3'] #2 models
+
 compression_ratios = [0.06, 0.26, 0.49] #0.26, 0.49
 snr_train = [0, 10, 20] #0, 10, 20
-comp_eval(model_str, x_test, compression_ratios, snr_train)
+#comp_eval(model_str, x_test, compression_ratios, snr_train)
 #comp_plot(model_str, snr_train)
 
 #===========plot2================
-#model_str = ['new2']
-comp_ratio = 0.06 #0.06, 0.26, 0.49
+comp_ratio = 0.49 #0.06, 0.26, 0.49
 snr_train = [0, 10, 20]
 snr_test = [2, 10, 18, 26] #2, 4, 7, 10, 13, 16, 18, 22, 25, 27
 test_eval(model_str, x_test, comp_ratio, snr_train, snr_test)
-#test_plot(model_str, comp_ratio, snr_train)
+test_plot(model_str, comp_ratio, snr_train)
 
 
 

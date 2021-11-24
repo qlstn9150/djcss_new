@@ -3,13 +3,16 @@
     
 
 - 성능 평가1 (압축률에 따른 PSNR)
-![plot1](plot/plot1/a.png)
+![plot1](plot/plot1/%5B'basic',%20'model7'%5D_CompRatio%5B0.06,%200.26,%200.49%5D_SNR%5B0,%2010,%2020%5D.png)
 
 - 성능 평가2 (k/n=0.06)
-![plot2](plot/plot2/%5B'basic',%20'new2'%5D_CompRatio0.06_SNR%5B10,%2020%5D.png)
-- 성능 평가2 (k/n=0.26) : not completed
+![plot2](plot/plot2/%5B'basic',%20'model7'%5D_CompRatio0.06_SNR%5B0,%2010,%2020%5D.png)
+
+- 성능 평가2 (k/n=0.26) 
+![plot2](plot/plot2/%5B'basic',%20'model7'%5D_CompRatio0.26_SNR%5B0,%2010,%2020%5D.png)
+
 - 성능 평가2 (k/n=0.49)  
-![plot2](plot/plot2/%5B'basic',%20'new2'%5D_CompRatio0.49_SNR%5B0,%2010,%2020%5D.png)
+![plot2](plot/plot2/%5B'basic',%20'model7'%5D_CompRatio0.49_SNR%5B0,%2010,%2020%5D.png)
 
 
 
