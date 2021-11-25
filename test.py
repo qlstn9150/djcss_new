@@ -71,8 +71,8 @@ def comp_psnr_plot(model_str, snr_train):
                 psnr = text.split('\n')[1]
                 psnr = json.loads(psnr)
             label = '{0} (SNR={1}dB)'.format(model, snr)
-            plt.plot(compression_ratios, psnr, ls=ls[i], c=colors[j], marker=markers[i], label=label)
-            #plt.plot(compression_ratios, psnr, ls='-', c=colors[i], marker='o', label=label)
+            #plt.plot(compression_ratios, psnr, ls=ls[i], c=colors[j], marker=markers[i], label=label)
+            plt.plot(compression_ratios, psnr, ls='-', c=colors[i], marker='o', label=label)
             j += 1
         i += 1
     plt.title('AWGN Channel')
@@ -176,10 +176,10 @@ def test_plot(model_str, comp_ratio, snr_train):
 model_str = ['basic', 'model3', 'model4', 'model6', 'model7']
 
 compression_ratios = [0.06, 0.26, 0.49]
-snr_train = [0]
+snr_train = [10]
 #comp_eval(model_str, x_test, compression_ratios, snr_train)
-#comp_psnr_plot(model_str, snr_train)
-comp_ssim_plot(model_str, snr_train)
+comp_psnr_plot(model_str, snr_train)
+#comp_ssim_plot(model_str, snr_train)
 
 #===========plot2================
 comp_ratio = 0.06 #0.06, 0.26, 0.49

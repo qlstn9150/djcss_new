@@ -414,11 +414,11 @@ def model6(c):
 
 def model7(c):
     input_images = Input(shape=(32, 32, 3))
-
     e1 = Dense(units=c, activation='relu')(input_images)
 
     ############################### NOISE ##############################
     real_prod = NormalizationNoise()(e1)
+
     ############################### Building Decoder ##############################
     # 1st Deconvolutional layer
     d1 = Conv2D(filters=40, kernel_size=(5, 5), strides=1,
@@ -434,11 +434,12 @@ def model7(c):
     decoder = Conv2D(filters=80, kernel_size=(5, 5), strides=1,
                      padding='same', kernel_initializer='he_normal')(d2)
     decoder = PReLU()(decoder)
+
     # 4th Deconvolutional layer
     decoder = Conv2D(filters=16, kernel_size=(5, 5), strides=1,
                      padding='same', kernel_initializer='he_normal')(decoder)
     decoder = PReLU()(decoder)
-    # decoder_up = UpSampling2D((2,2))(decoder)
+
     # 5th Deconvolutional layer
     decoder = Conv2D(filters=3, kernel_size=(5, 5), strides=1,
                      padding='same', kernel_initializer='he_normal',
@@ -471,6 +472,7 @@ def new2(c):
 
     ############################### NOISE ##############################
     real_prod = NormalizationNoise()(e_output)
+
     ############################### Building Decoder ##############################
     d1 = Conv2D(filters=50, kernel_size=(5, 5), strides=1, padding='same',
                               kernel_initializer='he_normal')(real_prod)
@@ -494,64 +496,3 @@ def new2(c):
     ############################### Buliding Models ###############################
     autoencoder = Model(input_images, d_output)
     return autoencoder
-
-def model7_new(c, channel, noise_sigma, backendNoise):
-    input_images = Input(shape=(32, 32, 3))
-
-    conv1 = Conv2D(filters=16, kernel_size=(5, 5), strides=1,
-                   padding='same', kernel_initializer='he_normal')(input_images)
-    prelu1 = PReLU()(conv1)
-
-    conv2 = Conv2D(filters=80, kernel_size=(5, 5), strides=1,
-                   padding='same', kernel_initializer='he_normal')(prelu1)
-    prelu2 = PReLU()(conv2)
-
-    conv3 = Conv2D(filters=50, kernel_size=(5, 5), strides=1,
-                   padding='same', kernel_initializer='he_normal')(prelu2)
-    prelu3 = PReLU()(conv3)
-
-    conv4 = Conv2D(filters=40, kernel_size=(5, 5), strides=1,
-                   padding='same', kernel_initializer='he_normal')(prelu3)
-    prelu4 = PReLU()(conv4)
-
-    conv5 = Conv2D(filters=c, kernel_size=(5, 5), strides=1,
-                   padding='same', kernel_initializer='he_normal')(prelu4)
-    encoder = PReLU()(conv5)
-
-    ############################### NOISE ##############################
-    c = Lambda(normalization, name='power_norm')(encoder)
-
-    if channel == 'awgn':
-        c = awgn(c, noise_sigma)
-    elif channel == 'bursty':
-        c = bursty(c, backendNoise, burst_beta)
-    else:
-        c = rayleigh(c, noise_sigma)
-    ############################### Building Decoder ##############################
-    # 1st Deconvolutional layer
-    d1 = Conv2D(filters=40, kernel_size=(5, 5), strides=1,
-                padding='same', kernel_initializer='he_normal')(c)
-    d1 = PReLU()(d1)
-
-    # 2nd Deconvolutional layer
-    d2 = Conv2D(filters=50, kernel_size=(5, 5), strides=1,
-                padding='same', kernel_initializer='he_normal')(d1)
-    d2 = PReLU()(d2)
-
-    # 3rd Deconvolutional layer
-    decoder = Conv2D(filters=80, kernel_size=(5, 5), strides=1,
-                     padding='same', kernel_initializer='he_normal')(d2)
-    decoder = PReLU()(decoder)
-    # 4th Deconvolutional layer
-    decoder = Conv2D(filters=16, kernel_size=(5, 5), strides=1,
-                     padding='same', kernel_initializer='he_normal')(decoder)
-    decoder = PReLU()(decoder)
-
-    # 5th Deconvolutional layer
-    decoder = Conv2D(filters=3, kernel_size=(5, 5), strides=1,
-                     padding='same', kernel_initializer='he_normal',
-                     activation='sigmoid')(decoder)
-
-    ############################### Buliding Models ###############################
-    model = Model(input_images, decoder)
-    return model
