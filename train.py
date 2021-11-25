@@ -6,6 +6,7 @@ import tensorflow as tf
 from keras.datasets import cifar10
 from keras.callbacks import ModelCheckpoint
 from keras.callbacks import TensorBoard
+from keras.optimizers import Adam
 import time
 
 (trainX, _), (testX, _) = cifar10.load_data()
@@ -17,7 +18,12 @@ def train(model_str, model_f, compression_ratios, snr, nb_epoch, batch_size=16):
         tf.keras.backend.clear_session()
 
         c = Calculate_filters(comp_ratio)
+        '''noise_sigma = np.sqrt(1 / (2 * comp_ratio * 10 ** (snr / 10)))
+        backendNoise = 1 / (2 * comp_ratio * 10 ** (snr / 10))
+        burst_beta = np.random.binomial(1, 0.05, size=(batch_size, L, 2 * n))
+'''
         model = model_f(c)
+        #model = model_f(c, noise_sigma, backendNoise, burst_beta)
         model.summary()
 
         K.set_value(model.get_layer('normalization_noise_1').snr_db, snr)
@@ -45,7 +51,7 @@ def train(model_str, model_f, compression_ratios, snr, nb_epoch, batch_size=16):
 model_str = 'model1'
 model_f = model1
 compression_ratios = [0.06, 0.26, 0.49] #0.06, 0.26
-snr = 20 #0,10,20
+snr = 0 #0,10,20
 nb_epoch = 5
 
 train(model_str, model_f, compression_ratios, snr, nb_epoch)
