@@ -1,7 +1,9 @@
 import os
-os.environ['CUDA_VISIBLE_DEVICES'] = '3'
+os.environ['CUDA_VISIBLE_DEVICES'] = '2'
 
 from model import *
+from model2 import *
+
 import tensorflow as tf
 from keras.datasets import cifar10
 from keras.callbacks import ModelCheckpoint
@@ -9,49 +11,47 @@ from keras.callbacks import TensorBoard
 from keras.optimizers import Adam
 import time
 
+
 (trainX, _), (testX, _) = cifar10.load_data()
 x_train, x_test = normalize_pixels(trainX, testX)
 
-def train(model_str, model_f, compression_ratios, snr, nb_epoch, batch_size=16):
+def train(model_str, model_f, all_snr, compression_ratios, nb_epoch, batch_size=16):
+    for snr in all_snr:
+        for comp_ratio in compression_ratios:
+            tf.keras.backend.clear_session()
 
-    for comp_ratio in compression_ratios:
-        tf.keras.backend.clear_session()
+            # load model
+            model = model_f(comp_ratio)
+            model.summary()
 
-        c = Calculate_filters(comp_ratio)
-        '''noise_sigma = np.sqrt(1 / (2 * comp_ratio * 10 ** (snr / 10)))
-        backendNoise = 1 / (2 * comp_ratio * 10 ** (snr / 10))
-        burst_beta = np.random.binomial(1, 0.05, size=(batch_size, L, 2 * n))
-'''
-        model = model_f(c)
-        #model = model_f(c, noise_sigma, backendNoise, burst_beta)
-        model.summary()
+            os.makedirs('./Tensorboard/{0}'.format(model_str), exist_ok=True)
+            os.makedirs('./checkpoints/{0}'.format(model_str), exist_ok=True)
 
-        K.set_value(model.get_layer('normalization_noise_1').snr_db, snr)
-        model.compile(optimizer=Adam(learning_rate=0.001), loss='mse', metrics=['accuracy'])
+            tb = TensorBoard(log_dir='./Tensorboard/{0}/CompRatio{1}_SNR{2}'.format(model_str, str(comp_ratio), str(snr)))
 
-        os.makedirs('./Tensorboard/{0}'.format(model_str), exist_ok=True)
-        os.makedirs('./checkpoints/{0}'.format(model_str), exist_ok=True)
+            checkpoint = ModelCheckpoint(filepath='./checkpoints/{0}/CompRatio{1}_SNR{2}.h5'.format(model_str, str(comp_ratio), str(snr)),
+                                         monitor = 'val_loss', save_best_only = True)
 
-        tb = TensorBoard(log_dir='./Tensorboard/{0}/CompRatio{1}_SNR{2}'.format(model_str, str(comp_ratio), str(snr)))
+            ckpt = ModelCheckponitsHandler(model_str, comp_ratio, snr, model, step=50)
 
-        checkpoint = ModelCheckpoint(filepath='./checkpoints/{0}/CompRatio{1}_SNR{2}.h5'.format(model_str, str(comp_ratio), str(snr)),
-                                     monitor = 'val_loss', save_best_only = True)
-
-        #ckpt = ModelCheckponitsHandler(model_str, comp_ratio, snr, model, step=50)
+            K.set_value(model.get_layer('normalization_noise_1').snr_db, snr)
+            model.compile(optimizer=Adam(learning_rate=0.001), loss='mse', metrics=['accuracy'])
 
 
-        start = time.clock()
-        model.fit(x=x_train, y=x_train, batch_size=batch_size, epochs=nb_epoch,
-                  callbacks=[tb, checkpoint], validation_data=(x_test, x_test))
-        end = time.clock()
-        print('The NN has trained ' + str(end - start) + ' s')
+            # train model
+            start = time.clock()
+            model.fit(x=x_train, y=x_train, batch_size=batch_size, epochs=nb_epoch,
+                      callbacks=[tb, checkpoint, ckpt], validation_data=(x_test, x_test))
+            end = time.clock()
+            print('The NN has trained ' + str(end - start) + ' s')
+
 
 
 #------------------------------------------
-model_str = 'model7'
-model_f = model7
-compression_ratios = [0.06, 0.26, 0.49] #0.06, 0.26
-snr = 0 #0,10,20
+model_str = 'model9'
+model_f = model9
+all_snr = [0,10,20] #0,10,20
+compression_ratios = [0.06, 0.26, 0.49] #0.06, 0.26, 0.49
 nb_epoch = 5
 
-train(model_str, model_f, compression_ratios, snr, nb_epoch)
+train(model_str, model_f, all_snr, compression_ratios, nb_epoch)

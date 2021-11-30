@@ -2,6 +2,8 @@ import os
 os.environ['CUDA_VISIBLE_DEVICES'] = '3'
 
 from model import *
+from model2 import *
+
 import tensorflow as tf
 from keras.datasets import cifar10
 from keras.callbacks import ModelCheckpoint

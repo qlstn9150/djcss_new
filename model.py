@@ -9,7 +9,7 @@ import tensorflow as tf
 import tensorflow.keras.backend as K
 
 
-from keras.layers import Add, BatchNormalization, Conv2D, Conv2DTranspose, Cropping2D
+from keras.layers import Add, BatchNormalization, Conv2D, Conv2DTranspose, Cropping2D, concatenate
 from keras.layers import Dense
 from keras.layers import Input, Layer, UpSampling2D
 from keras.layers.advanced_activations import PReLU
@@ -103,7 +103,7 @@ class ModelCheckponitsHandler(tf.keras.callbacks.Callback):
     def on_epoch_begin(self, epoch, logs=None):
         if epoch % self.step == 0:
             os.makedirs('./CKPT_ByEpochs/{0}/CompRatio{1}_SNR{2}'.\
-                       format(self.model_str, str(self.comp_ratio), str(self.snr_db), exist_ok=True))
+                       format(self.model_str, str(self.comp_ratio), str(self.snr_db)), exist_ok=True)
             path = './CKPT_ByEpochs/{0}/CompRatio{1}_SNR{2}/Epoch_{3}.h5'.\
                        format(self.model_str, str(self.comp_ratio), str(self.snr_db), str(epoch))
             self.autoencoder.save(path)
@@ -309,8 +309,8 @@ def model7(c):
 
 def model8(comp_ratio, F=32):
     input_images = Input(shape=(32, 32, 3))
-    c= Calculate_filters(comp_ratio, F)
-    e_output = Dense(units=c, activation='relu')(input_images)
+    #c= Calculate_filters(comp_ratio, F)
+    e_output = Dense(units=40, activation='relu')(input_images)
 
     ############################### NOISE ##############################
     real_prod = NormalizationNoise()(e_output)
@@ -339,3 +339,75 @@ def model8(comp_ratio, F=32):
     ############################### Buliding Models ###############################
     model = Model(input_images, d_output)
     return model
+
+def model9(comp_ratio, F=32):
+    input_images = Input(shape=(32, 32, 3))
+    #c= Calculate_filters(comp_ratio, F)
+    e_output = Dense(units=50, activation='relu')(input_images)
+
+    ############################### NOISE ##############################
+    real_prod = NormalizationNoise()(e_output)
+    ############################### Building Decoder ##############################
+
+    d1 = Conv2D(filters=50, kernel_size=(1,1), strides=1,
+                padding='same', kernel_initializer='he_normal')(real_prod)
+    d1 = PReLU()(d1)
+
+    d2 = Conv2D(filters=50, kernel_size=(1,1), strides=1,
+                padding='same', kernel_initializer='he_normal')(d1)
+    d2 = PReLU()(d2)
+    d2 = concatenate([d1, d2])
+
+    d3 = Conv2D(filters=50, kernel_size=(1,1), strides=1,
+                     padding='same', kernel_initializer='he_normal')(d2)
+    d3 = PReLU()(d3)
+    d3 = concatenate([d1, d2, d3])
+
+    d4 = Conv2D(filters=50, kernel_size=(1,1), strides=1,
+                     padding='same', kernel_initializer='he_normal')(d3)
+    d4 = PReLU()(d4)
+    d4 = concatenate([d1, d2, d3, d4])
+
+    d_output = Conv2D(filters=3, kernel_size=(1,1), strides=1,
+                     padding='same', kernel_initializer='he_normal',
+                     activation='sigmoid')(d4)
+
+    ############################### Buliding Models ###############################
+    model = Model(input_images, d_output)
+    return model
+
+def model9_2(comp_ratio, F=32):
+    input_images = Input(shape=(32, 32, 3))
+    #c= Calculate_filters(comp_ratio, F)
+    e_output = Dense(units=50, activation='relu')(input_images)
+
+    ############################### NOISE ##############################
+    real_prod = NormalizationNoise()(e_output)
+    ############################### Building Decoder ##############################
+
+    d1 = Conv2D(filters=50, kernel_size=(1,1), strides=1,
+                padding='same', kernel_initializer='he_normal')(real_prod)
+    d1 = PReLU()(d1)
+
+    d2 = Conv2D(filters=50, kernel_size=(1,1), strides=1,
+                padding='same', kernel_initializer='he_normal')(d1)
+    d2 = PReLU()(d2)
+    d2 = concatenate([d1, d2])
+
+    d3 = Conv2D(filters=50, kernel_size=(1,1), strides=1,
+                     padding='same', kernel_initializer='he_normal')(d2)
+    d3 = PReLU()(d3)
+    d3 = concatenate([d1, d2, d3])
+
+    d4 = Conv2D(filters=50, kernel_size=(1,1), strides=1,
+                     padding='same', kernel_initializer='he_normal')(d3)
+    d4 = PReLU()(d4)
+    d4 = concatenate([d1, d2, d3, d4])
+
+    d_output = Conv2D(filters=3, kernel_size=(1,1), strides=1,
+                     padding='same', kernel_initializer='he_normal',
+                     activation='sigmoid')(d4)
+
+    ############################### Buliding Models ###############################
+    model = Model(input_images, d_output)
+    return model, input_images, e_output, real_prod, d_output
