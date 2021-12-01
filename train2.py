@@ -12,16 +12,16 @@ from keras.optimizers import Adam
 import time
 
 
-(trainX, _), (testX, _) = cifar10.load_data()
-x_train, x_test = normalize_pixels(trainX, testX)
+'''(trainX, _), (testX, _) = cifar10.load_data()
+x_train, x_test = normalize_pixels(trainX, testX)'''
 
-def train(model_str, model_f, all_snr, compression_ratios, nb_epoch, batch_size=16):
+def train(model_str, model_f, all_snr, compression_ratios, nb_epoch, x_train, x_test, batch_size=16):
     for snr in all_snr:
         for comp_ratio in compression_ratios:
             tf.keras.backend.clear_session()
 
             # load model
-            model = model_f(comp_ratio)
+            model = model_f(snr, comp_ratio)
             model.summary()
 
             os.makedirs('./Tensorboard/{0}'.format(model_str), exist_ok=True)
@@ -43,15 +43,5 @@ def train(model_str, model_f, all_snr, compression_ratios, nb_epoch, batch_size=
             model.fit(x=x_train, y=x_train, batch_size=batch_size, epochs=nb_epoch,
                       callbacks=[tb, checkpoint, ckpt], validation_data=(x_test, x_test))
             end = time.clock()
+            print('==============={0}_CompRation{1}_SNR{2}============'.format(model, comp_ratio, snr))
             print('The NN has trained ' + str(end - start) + ' s')
-
-
-
-#------------------------------------------
-model_str = 'model9'
-model_f = model9
-all_snr = [0,10,20] #0,10,20
-compression_ratios = [0.06, 0.26, 0.49] #0.06, 0.26, 0.49
-nb_epoch = 5
-
-train(model_str, model_f, all_snr, compression_ratios, nb_epoch)

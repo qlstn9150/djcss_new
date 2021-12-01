@@ -14,41 +14,39 @@ from skimage.metrics import structural_similarity
 from skimage.metrics import peak_signal_noise_ratio
 
 
-# 데이터 준비
+'''# 데이터 준비
 (trainX, _), (testX, _) = cifar10.load_data()
-_, x_test = normalize_pixels(trainX, testX)
+_, x_test = normalize_pixels(trainX, testX)'''
 
 
-def comp_eval(model_str, x_test, compression_ratios, snr_train):
-    for model in model_str:
-        for snr in snr_train:
-            model_dic = {'Pred_Images': [], 'PSNR': [], 'SSIM': []}
-            for comp_ratio in compression_ratios:
-                tf.keras.backend.clear_session()
-                print('==============={0}_CompRation{1}_SNR{2}============'.format(model, comp_ratio, snr))
-                path = './checkpoints/{0}/CompRatio{1}_SNR{2}.h5'.format(model, comp_ratio, snr)
-                autoencoder = load_model(path, custom_objects={'NormalizationNoise': NormalizationNoise})
+def comp_eval(model, x_test, compression_ratios, snr_train, testX):
+    for snr in snr_train:
+        model_dic = {'Pred_Images': [], 'PSNR': [], 'SSIM': []}
+        for comp_ratio in compression_ratios:
+            tf.keras.backend.clear_session()
+            print('==============={0}_CompRation{1}_SNR{2}============'.format(model, comp_ratio, snr))
+            path = './checkpoints/{0}/CompRatio{1}_SNR{2}.h5'.format(model, comp_ratio, snr)
+            autoencoder = load_model(path, custom_objects={'NormalizationNoise': NormalizationNoise})
+            pred_images = autoencoder.predict(x_test) * 255
+            pred_images = pred_images.astype('uint8')
 
-                pred_images = autoencoder.predict(x_test) * 255
-                pred_images = pred_images.astype('uint8')
-                ssim = structural_similarity(testX, pred_images, multichannel=True)
-                psnr = peak_signal_noise_ratio(testX, pred_images)
+            ssim = structural_similarity(testX, pred_images, multichannel=True)
+            psnr = peak_signal_noise_ratio(testX, pred_images)
 
-                model_dic['Pred_Images'].append(pred_images)
-                model_dic['PSNR'].append(psnr)
-                model_dic['SSIM'].append(ssim)
-                print('Comp_Ratio = ', comp_ratio)
-                print('PSNR = ', psnr)
-                print('SSIM = ', ssim)
-                print('\n')
+            model_dic['PSNR'].append(psnr)
+            model_dic['SSIM'].append(ssim)
+            print('Comp_Ratio = ', comp_ratio)
+            print('PSNR = ', psnr)
+            print('SSIM = ', ssim)
+            print('\n')
 
-            path = './result_txt/plot1/{0}_SNR{1}.txt'.format(model, snr)
-            with open(path, 'w') as f:
-                print(compression_ratios, '\n', model_dic['PSNR'], '\n', model_dic['SSIM'], file=f)
-            f.closed
+        path = './result_txt/plot1/{0}_SNR{1}.txt'.format(model, snr)
+        with open(path, 'w') as f:
+            print(compression_ratios, '\n', model_dic['PSNR'], '\n', model_dic['SSIM'], file=f)
+        f.closed
 
-def test_eval(model_str, x_test, comp_ratio, snr_train, snr_test):
-    for model in model_str:
+def test_eval(model, x_test, compression_ratios, snr_train, snr_test, testX):
+    for comp_ratio in compression_ratios:
         for snr in snr_train:
             model_dic = {'Test_snr': [], 'PSNR': []}
             for snr_t in snr_test:
@@ -70,20 +68,5 @@ def test_eval(model_str, x_test, comp_ratio, snr_train, snr_test):
             with open(path, 'w') as f:
                 print(snr_test, '\n', model_dic['PSNR'], file=f)
             f.closed
-
-
-model_str = ['basic', 'model6']
-snr_train = [0,10,20]
-
-#===========plot1================
-compression_ratios = [0.06, 0.26, 0.49] #0.06, 0.26, 0.49
-#comp_eval(model_str, x_test, compression_ratios, snr_train)
-
-#===========plot2================
-comp_ratio = 0.26 #0.06, 0.26, 0.49
-snr_test = [2, 10, 18, 26] #2, 4, 7, 10, 13, 16, 18, 22, 25, 27
-test_eval(model_str, x_test, comp_ratio, snr_train, snr_test)
-
-
 
 

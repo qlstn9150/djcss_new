@@ -15,6 +15,7 @@ from keras.layers import Input, Layer, UpSampling2D
 from keras.layers.advanced_activations import PReLU
 from keras.models import Model
 import numpy as np
+from classifiers.ResNet import ResNet18
 
 def normalize_pixels(train_data, test_data):
 	train_norm = train_data.astype('float32')
@@ -24,7 +25,7 @@ def normalize_pixels(train_data, test_data):
 	return train_norm, test_norm
 
 class NormalizationNoise(Layer):
-    def __init__(self, snr_db_def=20, P_def=1, name='NormalizationNoise', **kwargs):
+    def __init__(self, snr_db_def, P_def=1, name='NormalizationNoise', **kwargs):
         self.snr_db = K.variable(snr_db_def, name='SNR_db')
         self.P = K.variable(P_def, name='Power')
         self.name = name
@@ -114,76 +115,50 @@ def Calculate_filters(comp_ratio, F, n=3072):
     return int(K)
 
 
-def model8(comp_ratio, F=32):
-    input_images = Input(shape=(32, 32, 3))
-    #c= Calculate_filters(comp_ratio, F)
-    e_output = Dense(units=40, activation='relu')(input_images)
 
-    ############################### NOISE ##############################
+# change only encoder
+def model1(comp_ratio, F=5):
+    input_images = Input(shape=(32, 32, 3))
+
+    e1= Conv2D(filters=40, kernel_size=(5,5), strides=1,
+               padding='same', kernel_initializer='he_normal')(input_images)
+    e1 = PReLU()(e1)
+
+    c = Calculate_filters(comp_ratio, F)
+    e2 = Conv2D(filters=c, kernel_size=(5,5), strides=1,
+                padding='same', kernel_initializer='he_normal')(e1)
+    e_output = PReLU(name='e_output')(e2)
+
     real_prod = NormalizationNoise()(e_output)
 
     ############################### Building Decoder ##############################
-    d1 = Conv2D(filters=40, kernel_size=(1,1), strides=1,
-                padding='same', kernel_initializer='he_normal')(real_prod)
-    d1 = PReLU()(d1)
 
-    d2 = Conv2D(filters=50, kernel_size=(1,1), strides=1,
-                padding='same', kernel_initializer='he_normal')(d1)
-    d2 = PReLU()(d2)
+    decoder = Conv2DTranspose(filters=40, kernel_size=(5, 5), strides=1, padding='same',
+                              kernel_initializer='he_normal')(real_prod)
+    decoder = PReLU()(decoder)
+    decoder = Conv2DTranspose(filters=50, kernel_size=(5, 5), strides=1, padding='same',
+                              kernel_initializer='he_normal')(decoder)
+    decoder = PReLU()(decoder)
 
-    d3 = Conv2D(filters=80, kernel_size=(1,1), strides=1,
-                     padding='same', kernel_initializer='he_normal')(d2)
-    d3 = PReLU()(d3)
-
-    d4 = Conv2D(filters=16, kernel_size=(1,1), strides=1,
-                     padding='same', kernel_initializer='he_normal')(d3)
-    d4 = PReLU()(d4)
-
-    d_output = Conv2D(filters=3, kernel_size=(1,1), strides=1,
-                     padding='same', kernel_initializer='he_normal',
-                     activation='sigmoid')(d4)
-
-    ############################### Buliding Models ###############################
-    model = Model(input_images, d_output)
-    return model
-
-def model9(comp_ratio, F=32):
-    input_images = Input(shape=(32, 32, 3))
-    #c= Calculate_filters(comp_ratio, F)
-    e_output = Dense(units=50, activation='relu')(input_images)
-
-    ############################### NOISE ##############################
-    real_prod = NormalizationNoise()(e_output)
-    ############################### Building Decoder ##############################
-
-    d1 = Conv2D(filters=50, kernel_size=(1,1), strides=1,
-                padding='same', kernel_initializer='he_normal')(real_prod)
-    d1 = PReLU()(d1)
-
-    d2 = Conv2D(filters=50, kernel_size=(1,1), strides=1,
-                padding='same', kernel_initializer='he_normal')(d1)
-    d2 = PReLU()(d2)
-    d2 = concatenate([d1, d2])
-
-    d3 = Conv2D(filters=50, kernel_size=(1,1), strides=1,
-                     padding='same', kernel_initializer='he_normal')(d2)
-    d3 = PReLU()(d3)
-    d3 = concatenate([d1, d2, d3])
-
-    d4 = Conv2D(filters=50, kernel_size=(1,1), strides=1,
-                     padding='same', kernel_initializer='he_normal')(d3)
-    d4 = PReLU()(d4)
-    d4 = concatenate([d1, d2, d3, d4])
-
-    d_output = Conv2D(filters=3, kernel_size=(1,1), strides=1,
-                     padding='same', kernel_initializer='he_normal',
-                     activation='sigmoid')(d4)
+    decoder = Conv2DTranspose(filters=80, kernel_size=(5, 5), strides=1, padding='same',
+                              kernel_initializer='he_normal')(decoder)
+    decoder = PReLU()(decoder)
+    decoder = Conv2DTranspose(filters=16, kernel_size=(5, 5), strides=2, padding='valid',
+                              kernel_initializer='he_normal')(decoder)
+    decoder = PReLU()(decoder)
+    # decoder_up = UpSampling2D((2,2))(decoder)
+    decoder = Conv2DTranspose(filters=3, kernel_size=(5, 5), strides=2, padding='valid', kernel_initializer='he_normal',
+                              activation='sigmoid')(decoder)
+    # decoder = PReLU()(decoder)
+    decoder_up = UpSampling2D((2, 2))(decoder)
+    decoder = Cropping2D(cropping=((13, 13), (13, 13)))(decoder_up)
 
     ############################### Buliding Models ###############################
-    model = Model(input_images, d_output)
+    model = Model(input_images, decoder)
     return model
 
-def model10(comp_ratio, F=5):
+# change decoder(simple)
+def model8(snr, comp_ratio, F=5):
     input_images = Input(shape=(32, 32, 3), name='input')
 
     e1= Conv2D(filters=40, kernel_size=(5,5), strides=1,
@@ -196,7 +171,7 @@ def model10(comp_ratio, F=5):
     e_output = PReLU(name='e_output')(e2)
 
     ############################### NOISE ##############################
-    c_output = NormalizationNoise()(e_output)
+    c_output = NormalizationNoise(snr)(e_output)
     ############################### Building Decoder ##############################
 
     d1 = Conv2D(filters=50, kernel_size=(1,1), strides=1,
@@ -206,17 +181,14 @@ def model10(comp_ratio, F=5):
     d2 = Conv2D(filters=50, kernel_size=(1,1), strides=1,
                 padding='same', kernel_initializer='he_normal')(d1)
     d2 = PReLU()(d2)
-    d2 = concatenate([d1, d2])
 
     d3 = Conv2D(filters=50, kernel_size=(1,1), strides=1,
                      padding='same', kernel_initializer='he_normal')(d2)
     d3 = PReLU()(d3)
-    d3 = concatenate([d1, d2, d3])
 
     d4 = Conv2D(filters=50, kernel_size=(1,1), strides=1,
                      padding='same', kernel_initializer='he_normal')(d3)
     d4 = PReLU()(d4)
-    d4 = concatenate([d1, d2, d3, d4])
 
     d_output = Conv2D(filters=3, kernel_size=(1,1), strides=1,
                      padding='same', kernel_initializer='he_normal',
@@ -226,7 +198,8 @@ def model10(comp_ratio, F=5):
     model = Model(input_images, d_output)
     return model
 
-def model10(comp_ratio, F=5):
+#ResNet
+def model9(snr, comp_ratio, F=5):
     input_images = Input(shape=(32, 32, 3), name='input')
 
     e1= Conv2D(filters=40, kernel_size=(5,5), strides=1,
@@ -239,7 +212,51 @@ def model10(comp_ratio, F=5):
     e_output = PReLU(name='e_output')(e2)
 
     ############################### NOISE ##############################
-    c_output = NormalizationNoise()(e_output)
+    c_output = NormalizationNoise(snr)(e_output)
+    ############################### Building Decoder ##############################
+
+    d1 = Conv2D(filters=50, kernel_size=(1,1), strides=1,
+                padding='same', kernel_initializer='he_normal')(c_output)
+    d1 = PReLU()(d1)
+
+    d2 = Conv2D(filters=50, kernel_size=(1,1), strides=1,
+                padding='same', kernel_initializer='he_normal')(d1)
+    d2 = PReLU()(d2)
+    d2 = Add([d1, d2])
+
+    d3 = Conv2D(filters=50, kernel_size=(1,1), strides=1,
+                     padding='same', kernel_initializer='he_normal')(d2)
+    d3 = PReLU()(d3)
+    d3 = Add([d1, d2, d3])
+
+    d4 = Conv2D(filters=50, kernel_size=(1,1), strides=1,
+                     padding='same', kernel_initializer='he_normal')(d3)
+    d4 = PReLU()(d4)
+    d4 = Add([d1, d2, d3, d4])
+
+    d_output = Conv2D(filters=3, kernel_size=(1,1), strides=1,
+                     padding='same', kernel_initializer='he_normal',
+                     activation='sigmoid', name='d_output')(d4)
+
+    ############################### Buliding Models ###############################
+    model = Model(input_images, d_output)
+    return model
+
+#DesneNet
+def model10(snr, comp_ratio, F=5):
+    input_images = Input(shape=(32, 32, 3), name='input')
+
+    e1= Conv2D(filters=40, kernel_size=(5,5), strides=1,
+               padding='same', kernel_initializer='he_normal')(input_images)
+    e1 = PReLU()(e1)
+
+    c = Calculate_filters(comp_ratio, F)
+    e2 = Conv2D(filters=c, kernel_size=(5,5), strides=1,
+                padding='same', kernel_initializer='he_normal')(e1)
+    e_output = PReLU(name='e_output')(e2)
+
+    ############################### NOISE ##############################
+    c_output = NormalizationNoise(snr)(e_output)
     ############################### Building Decoder ##############################
 
     d1 = Conv2D(filters=50, kernel_size=(1,1), strides=1,

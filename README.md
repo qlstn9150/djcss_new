@@ -11,7 +11,7 @@
 ![plot2](plot/plot2/%5B'basic',%20'model7'%5D_CompRatio0.49_SNR%5B0,%2010,%2020%5D.png)
 ## Image
 - original
-![image](img/Figure_1.png)
+![image](img/model6/all.png)
 
 
 #### parameter

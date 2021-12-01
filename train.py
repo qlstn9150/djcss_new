@@ -44,11 +44,11 @@ def train(model_str, model_f, all_snr, compression_ratios, nb_epoch, batch_size=
 
 
 #------------------------------------------
-model_str = 'basic750'
+'''model_str = 'basic750'
 model_f = basic750
 all_snr = [0,10,20]
 compression_ratios = [0.06, 0.26, 0.49]
 
 nb_epoch = 750
 
-train(model_str, model_f, all_snr, compression_ratios, nb_epoch)
+train(model_str, model_f, all_snr, compression_ratios, nb_epoch)'''
