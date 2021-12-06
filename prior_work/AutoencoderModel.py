@@ -173,7 +173,7 @@ def TrainAutoEncoder(x_train, x_test, nb_epoch, comp_ratio, batch_size, c, snr, 
     print('\t|\t\t\t\t\t\t\t\t|')
     print('\t|\t\t\t\t\t\t\t\t|')
     print('\t-----------------------------------------------------------------')
-    tb = keras.callbacks.tensorboard_v1.TensorBoard(log_dir='./Tensorboard/CompRatio{0}_SNR{1}'.format(str(comp_ratio), str(snr)))
+    tb = keras.callbacks.TensorBoard(log_dir='./Tensorboard/CompRatio{0}_SNR{1}'.format(str(comp_ratio), str(snr)))
     os.makedirs('./checkpoints/CompRatio{0}_SNR{1}'.format(str(comp_ratio), str(snr)), exist_ok=True)
     checkpoint = keras.callbacks.callbacks.ModelCheckpoint(filepath='./checkpoints/CompRatio{0}_SNR{1}'.format(str(comp_ratio), str(snr))+'/Autoencoder.h5', monitor='val_loss', save_best_only=True)
     ckpt = ModelCheckponitsHandler(comp_ratio, snr, autoencoder, step=saver_step)
